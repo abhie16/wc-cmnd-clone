@@ -1,7 +1,7 @@
 import fs from "fs";
 import ReadLine from "readline";
 
- export async function wcClone(){
+ export function wcClone(){
     try {
         const arg1 = process.argv[2];
         const arg2 = process.argv[3];
@@ -11,27 +11,59 @@ import ReadLine from "readline";
             console.log('path is missing')
         }
         else if(arg1 === '-c'){
-            const bytes = bytesInFile(arg2);
+            if(!arg2){
+                const fileContent = fs.readFileSync(0, 'utf8');
+                const bytes = bytesInFile(fileContent);
+                console.log(`${bytes}`);
+                return;
+            }
+
+            const fileContent = fs.readFileSync(arg2, 'utf8');
+            const bytes = bytesInFile(fileContent);
             console.log(`${bytes} ${arg2}`);
         }
         else if(arg1 === '-l'){
 
-            // using await becuase linesInfile return a promise
-            const lines = await linesInFile(arg2);
+            if(!arg2){
+                const fileContent = fs.readFileSync(0, 'utf8');
+                const lines = linesInFile(fileContent);
+                console.log(`${lines}`);
+                return;
+            }
+
+            const fileContent = fs.readFileSync(arg2, 'utf8');
+            const lines = linesInFile(fileContent);
             console.log(`${lines} ${arg2}`);
         }
         else if(arg1 === '-w'){
-            const words = wordsInFile(arg2);
+            if(!arg2){
+                const fileContent = fs.readFileSync(0, 'utf8');
+                const words = wordsInFile(fileContent);
+                console.log(`${words}`);
+                return;
+            }
+
+            const fileContent = fs.readFileSync(arg2, 'utf8');
+            const words = wordsInFile(fileContent);
             console.log(`${words} ${arg2}`);
         }
         else if(arg1 === '-m'){
-            const chars = charsInFile(arg2);
+            if(!arg2){
+                const fileContent = fs.readFileSync(0, 'utf8');
+                const chars = charsInFile(fileContent);
+                console.log(`${chars}`);
+                return;
+            }
+
+            const fileContent = fs.readFileSync(arg2, 'utf8');
+            const chars = charsInFile(fileContent);
             console.log(`${chars} ${arg2}`);
         }
         else{
-            const bytes = bytesInFile(arg1);
-            const lines = await linesInFile(arg1);
-            const words = wordsInFile(arg1);
+            const fileContent = fs.readFileSync(arg1, 'utf8');
+            const bytes = bytesInFile(fileContent);
+            const lines = linesInFile(fileContent);
+            const words = wordsInFile(fileContent);
             
             console.log(`${lines} ${words} ${bytes} ${arg1}`);
         }
@@ -40,39 +72,22 @@ import ReadLine from "readline";
     }
 }
 
-function bytesInFile(filePath){
+function bytesInFile(fileContent){
     try {
-        const text = fs.readFileSync(filePath, 'utf8');
-        return new Blob([text]).size;
+        return new Blob([fileContent]).size;
     } catch (error) {
         console.log(error);   
     }
 }
 
-function linesInFile(filePath){
-    
-        const fileStream = fs.createReadStream(filePath);
-        const rl  = ReadLine.Interface({
-            input: fileStream,
-            crlfDelay: Infinity
-        })
-
-        // create a promise to return the number of lines because the readline is async function(promise based api) and we can't return the value directly from it
-    
-        const lines =  new Promise((resolve, reject) => {
-            let count = 0;
-            rl.on('line', (line) => count++);
-            rl.on('close', () => resolve(count));
-            rl.on('error', (err) => reject(err));
-        })
-        return lines;
-    
+function linesInFile(fileContent){
+    const fileContentLines = fileContent.split('\n');
+    return fileContentLines.length-1;
 }
 
-function wordsInFile(filePath){
+function wordsInFile(fileContent){
     try {
-        const text = fs.readFileSync(filePath, 'utf8');
-        const words = text.trim().split(/\s+/);
+        const words = fileContent.trim().split(/\s+/);
         return words.length;
     } catch (error) {
         console.log(error);
@@ -81,8 +96,7 @@ function wordsInFile(filePath){
 
 function charsInFile(filePath){
     try {
-        const text = fs.readFileSync(filePath, 'utf8');
-        return text.length;
+        return filePath.length;
     } catch (error) {
         console.log(error);
     }
